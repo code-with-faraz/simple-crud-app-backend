@@ -1,27 +1,39 @@
+// Import required modules
 const express = require("express");
 const mongoose = require("mongoose");
+const dotenv = require("dotenv");
 const Product = require("./models/product.model.js"); // Import the Product model
 const productRoute = require("./routes/product.route.js");
+
+dotenv.config(); // Load environment variables from .env file
+
 const app = express();
 
-//middleware
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-//routes
+// Routes
 app.use("/api/products", productRoute);
+
+// Centralized error handler middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack); // Log error details
+  res.status(500).json({ message: "Something went wrong!" }); // Send generic error response
+});
 
 // Connect to MongoDB and start the server
 mongoose
-  .connect(
-    "mongodb+srv://farazmirza1023:4hC9fZ8H1L52yH5D@backenddb.oww1x.mongodb.net/Node-API?retryWrites=true&w=majority&appName=BackendDB"
-  )
+  .connect(process.env.MONGO_URI) // Use environment variable for MongoDB URI
   .then(() => {
     console.log("Connected to the Database");
-    app.listen(3000, () => {
-      console.log("Server is running on port 3000");
+
+    // Use environment variable for PORT or default to 3000
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.log("Failed to connect to the Database", err);
+    console.log("Failed to connect to the Database", err); // Log connection errors
   });
